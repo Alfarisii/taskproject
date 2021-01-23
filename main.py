@@ -1,22 +1,16 @@
 from flask import Flask,render_template, jsonify
-from flaskext.mysql import MySQL
+from db import init_db
+from logic import show_all_day
+
 app = Flask(__name__)
+db = init_db(app)
 #namenya harus sama kaya nama filenya.
+#unopiniated framework (flask)
 
 @app.route('/')
 def index():
     return "hello world"
-#define routenya   
-
-def init_db(app):
-    app.config['MYSQL_DATABASE_HOST'] = 'localhost'
-    app.config['MYSQL_DATABASE_USER'] = 'root'
-    app.config['MYSQL_DATABASE_PASSWORD'] = 'root'
-    app.config['MYSQL_DATABASE_DB'] = 'sholaccati'
-    mysql = MySQL(app)
-
-
-#@app.route('/day', methods = ['GET','POST'])
+#define routenya also there is @app.route('/day', methods = ['GET','POST'])
 
 @app.route('/day', methods = ['POST'])
 def create_day():
@@ -26,7 +20,10 @@ def create_day():
 def view_day():
     # ambil data dari DB
     # connect ke DB
-    return "this is view endpoint" 
+    #{{'name':'monday'}}
+    # yang bisa di return itu cuman, dict, array dan bbrp hal
+    res = show_all_day(db)
+    return jsonify(res)
 
 @app.route('/day/delete')
 def delete_day():
