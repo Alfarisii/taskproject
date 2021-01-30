@@ -20,3 +20,14 @@ def show_all_day(db):
     cursor.close()
     #{{'name':'monday'}}
     return res
+
+def insert_day(db, day, allowed_hours):
+    cursor = db.get_db().cursor()
+    query = 'insert into days(name,allowed_hours) values("{0}", {1})'.format(day, allowed_hours)
+    print(query)
+    cursor.execute(query)
+    db.get_db().commit()
+
+    cursor.close()
+    #{{'name':'monday'}}
+    return

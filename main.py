@@ -1,6 +1,7 @@
-from flask import Flask,render_template, jsonify
+from flask import Flask,render_template, jsonify, request
 from db import init_db
-from logic import show_all_day
+from logic import show_all_day, insert_day
+
 
 app = Flask(__name__)
 db = init_db(app)
@@ -14,7 +15,22 @@ def index():
 
 @app.route('/day', methods = ['POST'])
 def create_day():
-    return "this is create endpoint"  
+    #butuh info apa aja : name, allowed hours
+    #Json
+    #param = baca_param[], 1. Baca requestnya
+    print(request.get_json())
+    body = request.get_json()
+    is_valid = create_day_validation(body)
+    #kalau true or false if akan tetap jalan
+    #2. validasi requestnya
+    if not is_valid :
+        return {"Message" : "Request tidak valid"},400
+    #3. Laksanakan requestnya dan masukan request.
+    res = insert_day(db,body["name"],body["allowed_hours"])
+    #4. balikin responnya
+    result = {"Message" : "sukses ditambahkan"}
+    print(type(request.get_json()))
+    return result
 
 @app.route('/day/view')
 def view_day():
@@ -27,7 +43,23 @@ def view_day():
 
 @app.route('/day/delete')
 def delete_day():
-    return "this is view delete endpoint"  
+    return "this is view delete endpoint" 
+
+def create_day_validation(body) -> bool:
+    expected_field = ["name","allowed_hours"]
+    #expected fieldnya berbentuk list maka harus dirubah ke list
+    sent_field = list(body.keys())
+
+    result = True
+    for body_field in sent_field:
+        if body_field in expected_field:
+            result = result and True
+        else :
+            result = result and False
+    return result
+
+
+#["name";"allowed_hours"] ==> 
 
 if __name__ == '__main__':
     app.run(debug = True)
