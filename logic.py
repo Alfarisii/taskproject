@@ -31,3 +31,16 @@ def insert_day(db, day, allowed_hours):
     cursor.close()
     #{{'name':'monday'}}
     return
+
+def delete_day(db, id):
+    cursor = db.get_db().cursor()
+    query = 'delete from days where id = {0};'.format(id)
+    #id adalah {0}.format(12) nanti jadi concenate string supaya bisa gabung.
+    #id adalah 12, sama kaya {0} 
+    print(query)
+    cursor.execute(query)
+    db.get_db().commit()
+
+    cursor.close()
+    #{{'name':'monday'}}
+    return cursor.rowcount
