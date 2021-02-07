@@ -1,9 +1,11 @@
 from flask import Flask,render_template, jsonify, request
 from db import init_db
-from logic import show_all_day, insert_day, delete_day
+from logic import show_all_day, insert_day, delete_day, update_day, show_all_task, insert_task, delete_task, update_task
+from flask_cors import CORS
 
 
 app = Flask(__name__)
+CORS(app)
 db = init_db(app)
 #namenya harus sama kaya nama filenya.
 #unopiniated framework (flask)
@@ -13,7 +15,7 @@ def index():
     return "hello world"
 #define routenya also there is @app.route('/day', methods = ['GET','POST'])
 
-@app.route('/day', methods = ['POST'])
+@app.route('/day/create', methods = ['POST'])
 def create_day():
     #butuh info apa aja : name, allowed hours
     #Json
@@ -26,8 +28,20 @@ def create_day():
     if not is_valid :
         return {"Message" : "Request tidak valid"},400
     #3. Laksanakan requestnya dan masukan request.
-    res = insert_day(db,body["name"],body["allowed_hours"])
+    res = insert_day(db,body["name"],body["allowed_hours"],)
     #4. balikin responnya
+    result = {"Message" : "sukses ditambahkan"}
+    print(type(request.get_json()))
+    return result
+
+@app.route('/task/create', methods = ['POST'])
+def create_task():
+    print(request.get_json())
+    body = request.get_json()
+    is_valid = create_task_validation(body)
+    if not is_valid :
+        return {"Message" : "Request tidak valid"},400
+    res = insert_task(db,body["duration"],body["name"],body["id_day"],)
     result = {"Message" : "sukses ditambahkan"}
     print(type(request.get_json()))
     return result
@@ -39,6 +53,15 @@ def view_day():
     #{{'name':'monday'}}
     # yang bisa di return itu cuman, dict, array dan bbrp hal
     res = show_all_day(db)
+    return jsonify(res)
+
+@app.route('/task/view')
+def view_task():
+    # ambil data dari DB
+    # connect ke DB
+    #{{'name':'monday'}}
+    # yang bisa di return itu cuman, dict, array dan bbrp hal
+    res = show_all_task(db)
     return jsonify(res)
 
 @app.route('/day/delete', methods = ['POST'])
@@ -60,8 +83,95 @@ def delete_day_handler():
     print(type(request.get_json()))
     return result
 
+@app.route('/task/delete', methods = ['POST'])
+def delete_task_handler():
+    print(request.get_json())
+    body = request.get_json()
+    is_valid = delete_task_validation(body)
+    if not is_valid :
+        return {"Message" : "Request tidak valid"},400
+    rowcount = delete_task(db,body["id"])
+    if rowcount == 0:
+        result = {"Message" : "ID tidak ada", "jumlah record terhapus" : rowcount}
+    else:
+        result = {"Message" : "sukses dihapus", "jumlah record terhapus" : rowcount}
+    print(type(request.get_json()))
+    return result
+    
+@app.route('/day/edit', methods = ['POST'])
+def edit_day():
+    #butuh info apa aja : name, allowed hours
+    #Json
+    #param = baca_param[], 1. Baca requestnya
+    print(request.get_json())
+    body = request.get_json()
+    is_valid = update_day_validation(body)
+    #kalau true or false if akan tetap jalan
+    #2. validasi requestnya
+    if not is_valid :
+        return {"Message" : "Request tidak valid"},400
+    #3. Laksanakan requestnya dan masukan request.
+    res = update_day(db,body["name"],body["allowed_hours"],body["id"])
+    #4. balikin responnya
+    result = {"Message" : "sukses ditambahkan"}
+    print(type(request.get_json()))
+    return result
+
+@app.route('/task/edit', methods = ['POST'])
+def edit_task():
+    print(request.get_json())
+    body = request.get_json()
+    is_valid = update_task_validation(body)
+    if not is_valid :
+        return {"Message" : "Request tidak valid"},400
+    res = update_task(db,body["duration"],body["name"],body["id_day"],body["id"])
+    result = {"Message" : "sukses ditambahkan"}
+    print(type(request.get_json()))
+    return result
+
+
+
 def create_day_validation(body) -> bool:
     expected_field = ["name","allowed_hours"]
+    #expected fieldnya berbentuk list maka harus dirubah ke list
+    sent_field = list(body.keys())
+
+    result = True
+    for body_field in sent_field:
+        if body_field in expected_field:
+            result = result and True
+        else :
+            result = result and False
+    return result
+
+def create_task_validation(body) -> bool:
+    expected_field = ["duration", "name", "id_day"]
+    sent_field = list(body.keys())
+
+    result = True
+    for body_field in sent_field:
+        if body_field in expected_field:
+            result = result and True
+        else :
+            result = result and False
+    return result
+
+def update_day_validation(body) -> bool:
+    expected_field = ["name","allowed_hours","id"]
+    #expected fieldnya berbentuk list maka harus dirubah ke list
+    sent_field = list(body.keys())
+
+    result = True
+    for body_field in sent_field:
+        if body_field in expected_field:
+            result = result and True
+        else :
+            result = result and False
+    return result
+
+
+def update_task_validation(body) -> bool:
+    expected_field = ["duration", "name", "id_day","id"]
     #expected fieldnya berbentuk list maka harus dirubah ke list
     sent_field = list(body.keys())
 
@@ -85,6 +195,20 @@ def delete_day_validation(body) -> bool:
         else :
             result = result and False
     return result
+
+def delete_task_validation(body) -> bool:
+    expected_field = ["id"]
+    #expected fieldnya berbentuk list maka harus dirubah ke list
+    sent_field = list(body.keys())
+
+    result = True
+    for body_field in sent_field:
+        if body_field in expected_field:
+            result = result and True
+        else :
+            result = result and False
+    return result
+
 
 #["name";"allowed_hours"] ==> 
 
