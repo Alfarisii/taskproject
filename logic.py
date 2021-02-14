@@ -1,6 +1,5 @@
-def show_all_day(db,min,max):
-    
-    if min is not None and max is not None:
+def show_all_day(db,min=0,max=0):
+    if int(min) > 0 and int(max) > 0:
         query = 'select name,allowed_hours from days where allowed_hours > {0} AND allowed_hours <{1}; '.format(min, max)
     else :
         query = 'select name,allowed_hours from days;'
