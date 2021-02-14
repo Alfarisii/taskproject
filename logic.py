@@ -110,3 +110,70 @@ def update_task(db, duration, name, id_day, id):
     return
 
 
+def get_duration_task(db,id_day):
+    query = 'select SUM(duration),allowed_hours from task inner join days ON days.id=task.id_day where id_day = {0};'.format(id_day)
+    cursor = db.get_db().cursor()
+
+    cursor.execute(query)
+    query_result = cursor.fetchall()
+    res = []
+    for row in query_result:
+        temp = {
+            "duration" : row[0],
+            "allowed_hours" : row[1],
+        }
+        res.append(temp)
+    cursor.close()
+    return res
+
+def Show_all_item(db):
+    query = 'select duration,task.name,task.id_day,days.id,days.name,allowed_hours from task join days ON days.id=task.id_day ; '
+    #kenapa didefine kolomnya? biar tau indexnya apa saja karena fetchall itu jadi array 2D
+    cursor = db.get_db().cursor()
+
+    cursor.execute(query)
+    query_result = cursor.fetchall()
+    res = []
+    for row in query_result:
+        temp = {
+            "duration_task" : row[0],
+            "name_task" : row[1],
+            "id_task" : row[2],
+            "id_day" : row[3],
+            "day_name" : row[4],
+            "allowed_hours" : row[5]
+        }
+        res.append(temp)
+    cursor.close()
+    #{{'name':'monday'}}
+    return res
+
+def All_task_day(db,id_day,res):  
+    #returnnya array jadi dedefine
+    final_result = []
+    for row in res:
+        temp = {
+            "id_task" : row["id_task"],
+            "duration_task" : row["duration_task"],
+            "name_task" : row["name_task"]
+        }
+        if row["id_day"] == id_day:
+           final_result.append(temp)
+    return final_result
+
+def Show_all(db):
+    res = Show_all_item(db)
+    final_result = []
+    id_prev = []
+    for row in res:
+        temp = {
+            "id_day" : row["id_day"],
+            "day_name" : row["day_name"],
+            "allowed_hours" : row["allowed_hours"],
+            "task" : All_task_day(db,row["id_day"],res)
+        }
+        if row["id_day"] not in id_prev:
+            id_prev.append(row["id_day"])
+            final_result.append(temp)
+        #kalo final result itu dictionary jadi tdk mudah dan code cleannya tidak baik, jadi mending lebih mudah dibaca kaya gini. self explanatory.
+    return final_result

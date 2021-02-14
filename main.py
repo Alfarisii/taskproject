@@ -1,6 +1,7 @@
 from flask import Flask,render_template, jsonify, request
 from db import init_db
-from logic import show_all_day, insert_day, delete_day, update_day, show_all_task, insert_task, delete_task, update_task
+#from logic import show_all_day, insert_day, delete_day, update_day, show_all_task, insert_task, delete_task, update_task, get_duration_task
+from logic import *
 from flask_cors import CORS
 
 
@@ -41,6 +42,17 @@ def create_task():
     is_valid = create_task_validation(body)
     if not is_valid :
         return {"Message" : "Request tidak valid"},400
+    #validasi untuk hoursnya
+    duration = get_duration_task(db,body["id_day"])
+    #kalo 1 itu jika ada 2 rows, 0,1
+    durasi = duration[0]['duration']
+    hours = duration[0]['allowed_hours']
+    #and bukan && dan harus equal boolean 22nya.
+    if durasi is None and hours is None:
+        return {"Message" : "result not found"},400
+    durasi += body["duration"]
+    if durasi > hours :
+        return {"Message" : "durasi melebihi jam"},400
     res = insert_task(db,body["duration"],body["name"],body["id_day"],)
     result = {"Message" : "sukses ditambahkan"}
     print(type(request.get_json()))
@@ -57,10 +69,6 @@ def view_day():
 
 @app.route('/task/view')
 def view_task():
-    # ambil data dari DB
-    # connect ke DB
-    #{{'name':'monday'}}
-    # yang bisa di return itu cuman, dict, array dan bbrp hal
     res = show_all_task(db)
     return jsonify(res)
 
@@ -124,10 +132,36 @@ def edit_task():
     is_valid = update_task_validation(body)
     if not is_valid :
         return {"Message" : "Request tidak valid"},400
+    #validasi untuk hoursnya
+    duration = get_duration_task(db,body["id_day"])
+    #kalo 1 itu jika ada 2 rows, 0,1
+    durasi = duration[0]['duration']
+    hours = duration[0]['allowed_hours']
+    #and bukan && dan harus equal boolean 22nya.
+    if durasi is None and hours is None:
+        return {"Message" : "result not found"},400
+    durasi += body["duration"]
+    if durasi > hours :
+        return {"Message" : "durasi melebihi jam"},400
+    
     res = update_task(db,body["duration"],body["name"],body["id_day"],body["id"])
     result = {"Message" : "sukses ditambahkan"}
     print(type(request.get_json()))
     return result
+
+@app.route('/day/JSON', methods = ['GET'])
+def JSON():
+    # res = show_all_day(db)
+    # res2 = show_all_task(db)
+    # result = defaultdict(dict)
+    # for sequence in (res, res2):
+    #     for dictionary in sequence:
+    #         result[dictionary['id']].update(dictionary)
+    # for dictionary in result.values():
+    #     dictionary.pop('id')
+    res = Show_all(db)
+    return jsonify(res)
+
 
 
 
@@ -174,7 +208,6 @@ def update_task_validation(body) -> bool:
     expected_field = ["duration", "name", "id_day","id"]
     #expected fieldnya berbentuk list maka harus dirubah ke list
     sent_field = list(body.keys())
-
     result = True
     for body_field in sent_field:
         if body_field in expected_field:
