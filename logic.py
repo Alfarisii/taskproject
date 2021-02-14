@@ -1,8 +1,11 @@
-def show_all_day(db):
-    query = 'select name,allowed_hours from days; '
+def show_all_day(db,min,max):
+    
+    if min is not None and max is not None:
+        query = 'select name,allowed_hours from days where allowed_hours > {0} AND allowed_hours <{1}; '.format(min, max)
+    else :
+        query = 'select name,allowed_hours from days;'
     #kenapa didefine kolomnya? biar tau indexnya apa saja karena fetchall itu jadi array 2D
     cursor = db.get_db().cursor()
-
     cursor.execute(query)
     query_result = cursor.fetchall()
     #ini dibuat fetchall supaya jadi array 2D atau array dalam array.

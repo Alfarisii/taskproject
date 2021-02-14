@@ -64,7 +64,11 @@ def view_day():
     # connect ke DB
     #{{'name':'monday'}}
     # yang bisa di return itu cuman, dict, array dan bbrp hal
-    res = show_all_day(db)
+    # here we want to get the value of user (i.e. ?user=some-value)
+    min = request.args.get('min')
+    max = request.args.get('max')
+    #no need body because no JSON
+    res = show_all_day(db,min,max)
     return jsonify(res)
 
 @app.route('/task/view')
